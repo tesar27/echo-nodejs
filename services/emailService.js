@@ -1,14 +1,16 @@
-const Mailgun = require("mailgun.js");
-const formData = require("form-data");
+const nodemailer = require("nodemailer");
 
 class EmailService {
   constructor() {
-    this.mailgun = new Mailgun(formData);
-    this.mg = this.mailgun.client({
-      username: "api",
-      key: process.env.MAILGUN_API_KEY,
+    this.transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
-    this.domain = process.env.MAILGUN_DOMAIN;
     this.fromEmail = process.env.FROM_EMAIL;
   }
 
@@ -17,7 +19,7 @@ class EmailService {
       process.env.BASE_URL || "http://localhost:3000"
     }/api/auth/verify-email?token=${verificationToken}`;
 
-    const emailData = {
+    const mailOptions = {
       from: this.fromEmail,
       to: email,
       subject: "Verify your Echo account",
@@ -25,8 +27,8 @@ class EmailService {
     };
 
     try {
-      const result = await this.mg.messages.create(this.domain, emailData);
-      console.log("Verification email sent:", result);
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log("Verification email sent:", result.messageId);
       return result;
     } catch (error) {
       console.error("Error sending verification email:", error);
@@ -39,7 +41,7 @@ class EmailService {
       process.env.BASE_URL || "http://localhost:3000"
     }/reset-password?token=${resetToken}`;
 
-    const emailData = {
+    const mailOptions = {
       from: this.fromEmail,
       to: email,
       subject: "Reset your Echo password",
@@ -47,8 +49,8 @@ class EmailService {
     };
 
     try {
-      const result = await this.mg.messages.create(this.domain, emailData);
-      console.log("Password reset email sent:", result);
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log("Password reset email sent:", result.messageId);
       return result;
     } catch (error) {
       console.error("Error sending password reset email:", error);
