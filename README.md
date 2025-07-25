@@ -1,4 +1,4 @@
-# Twitter Clone Backend
+# Echo Backend
 
 A Twitter-like social media backend application built with Express.js.
 
